@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import printers.ConsoleDomPrinterImpl
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
@@ -26,9 +25,7 @@ class DomParserTest {
                 )
             )
         )
-
-        ConsoleDomPrinterImpl().print(parser.parse("[h][p][/p][/h]"))
-
+        
         assertEquals(
             parser.parse("[text]Hello[/text]"),
             listOf(
