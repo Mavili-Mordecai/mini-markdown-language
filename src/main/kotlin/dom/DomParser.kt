@@ -104,7 +104,7 @@ class DomParser {
 
         lp++
 
-        return DomNode(DomElement(name.toString(), content.trim().toString(), attributes), lp, children)
+        return DomNode(DomElement(name.toString(), content.trimButKeepSingleSpaces(), attributes), lp, children)
     }
 
     private fun parseAttributes(attributesLine: String): Map<String, String> {
@@ -171,4 +171,17 @@ class DomParser {
     private fun isKeySymbolInvalid(ch: Char): Boolean {
         return !(ch.isLetterOrDigit() || ch == '-' || ch == '_')
     }
+
+    private fun StringBuilder.trimButKeepSingleSpaces(): String {
+        val trimmed = this.trim()
+        val hadLeadingSpace = this.startsWith(' ') || this.startsWith('\u00A0') // учитываем неразрывный пробел
+        val hadTrailingSpace = this.endsWith(' ') || this.endsWith('\u00A0')
+
+        return buildString {
+            if (hadLeadingSpace) append(' ')
+            append(trimmed)
+            if (hadTrailingSpace) append(' ')
+        }
+    }
 }
+
