@@ -1,12 +1,19 @@
 package dom
 
+/**
+ *
+ * @property element
+ * @property endOffset The index of the symbol in sanitized markup, which follows the closing square bracket of the tag.
+ * For example, `[h][p][/p][/h]`. The `h` endOffset will have 14, and the `p` endOffset will have 10.
+ * @property children
+ */
 data class DomNode(
     val element: DomElement,
     val endOffset: Int,
     val children: List<DomNode> = emptyList()
 ) {
     override fun toString(): String {
-        return "dom.DomNode(tag=${element.tag}, content=${element.content}, attributes=${element.attributes})"
+        return "DomNode(tag=${element.tag}, content=${element.content}, attributes=${element.attributes}, endOffset=$endOffset)"
     }
 
     override fun hashCode(): Int {
@@ -24,6 +31,7 @@ data class DomNode(
 
         if (element != other.element) return false
         if (children != other.children) return false
+        if (endOffset != other.endOffset) return false
 
         return true
     }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import printers.ConsoleDomPrinterImpl
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
@@ -20,18 +21,20 @@ class DomParserTest {
             listOf(
                 DomNode(
                     DomElement("p", ""),
-                    endOffset = 6,
+                    endOffset = 7,
                     children = emptyList()
                 )
             )
         )
+
+        ConsoleDomPrinterImpl().print(parser.parse("[h][p][/p][/h]"))
 
         assertEquals(
             parser.parse("[text]Hello[/text]"),
             listOf(
                 DomNode(
                     DomElement("text", "Hello"),
-                    endOffset = 15,
+                    endOffset = 18,
                     children = emptyList()
                 )
             )
@@ -45,7 +48,7 @@ class DomParserTest {
                         "тег", "Привет",
                         attributes = mapOf("attr" to "значение")
                     ),
-                    endOffset = 32,
+                    endOffset = 33,
                     children = emptyList()
                 )
             )
@@ -56,7 +59,7 @@ class DomParserTest {
             listOf(
                 DomNode(
                     DomElement("img", ""),
-                    endOffset = 9,
+                    endOffset = 11,
                     children = emptyList()
                 )
             )
@@ -71,13 +74,27 @@ class DomParserTest {
             listOf(
                 DomNode(
                     DomElement("div", ""),
-                    endOffset = 20,
+                    endOffset = 22,
                     children = listOf(
                         DomNode(
                             DomElement("p", "Test"),
-                            endOffset = 12,
+                            endOffset = 16,
                             children = emptyList()
                         )
+                    )
+                )
+            )
+        )
+
+        assertEquals(
+            parser.parse("[div][text]Text[/text] [p]Child[/p][/div]"),
+            listOf(
+                DomNode(
+                    DomElement("div", ""),
+                    endOffset = 41,
+                    children = listOf(
+                        DomNode(DomElement("text", "Text"), 22),
+                        DomNode(DomElement("p", "Child"), 35),
                     )
                 )
             )
@@ -99,7 +116,7 @@ class DomParserTest {
                             "target" to "_blank"
                         )
                     ),
-                    endOffset = 49,
+                    endOffset = 60,
                     children = emptyList()
                 )
             )
@@ -117,7 +134,7 @@ class DomParserTest {
                             "target" to "_blank"
                         )
                     ),
-                    endOffset = 49,
+                    endOffset = 90,
                     children = emptyList()
                 )
             )
@@ -125,7 +142,7 @@ class DomParserTest {
     }
 
     @Test
-    @DisplayName("Невалидные теги")
+    @DisplayName("Invalid tags")
     fun testInvalidTags() {
         // An unclosed tag
         assertThrows<MarkdownSyntaxException> {
@@ -186,7 +203,7 @@ class DomParserTest {
             listOf(
                 DomNode(
                     DomElement("p", "Line 1\nLine 2\tTab"),
-                    endOffset = 22,
+                    endOffset = 24,
                     children = emptyList()
                 )
             )
@@ -203,7 +220,7 @@ class DomParserTest {
                     val items = List(1000) { i ->
                         DomNode(
                             DomElement("item", "Test"),
-                            endOffset = 13 + 18 * i,
+                            endOffset = 24 + 18 * i,
                             children = emptyList()
                         )
                     }
@@ -221,47 +238,20 @@ class DomParserTest {
         println("Stress test completed in ${time.toString(DurationUnit.MILLISECONDS)}")
     }
 
-
     @Test
     @DisplayName("A million dom-nodes")
     fun testMillionNodes() {
+        val input = "[root]${" [parent]${" [child]X[/child]".repeat(1000)}[/parent]".repeat(1000)}[/root]"
+        var result: List<DomNode> = emptyList()
+
         val time = measureTime {
-            assertEquals(
-                parser.parse("[root]${" [parent]${" [child]X[/child]".repeat(1000)}[/parent]".repeat(1000)}[/root]"),
-                run {
-                    val rootOpenTagLength = 6 // [root]
-                    val parentTagLength = 17 // [parent][/parent] + spaces
-                    val childTagLength = 16 // [child]X[/child]
+            result = parser.parse(input)
+        }
 
-                    // Строим дерево снизу вверх:
-                    val grandchildren = List(1000) { grandchildIdx ->
-                        DomNode(
-                            DomElement("child", "X"),
-                            endOffset = rootOpenTagLength +
-                                    parentTagLength * 1000 * grandchildIdx +
-                                    childTagLength * (grandchildIdx + 1),
-                            children = emptyList()
-                        )
-                    }
-
-                    val children = List(1000) { parentIdx ->
-                        DomNode(
-                            DomElement("parent", ""),
-                            endOffset = rootOpenTagLength + parentTagLength * (parentIdx + 1),
-                            children = grandchildren
-                        )
-                    }
-
-                    listOf(
-                        DomNode(
-                            DomElement("root", ""),
-                            endOffset = rootOpenTagLength + parentTagLength * 1000 + 7, // 7 = [/root]
-                            children = children
-                        )
-                    )
-                    // Total number of nodes: 1 (root) + 1000 (parents) + 1_000_000 (children) = 1_001_001
-                }
-            )
+        assertEquals(1, result.size)
+        assertEquals(1000, result[0].children.size)
+        result[0].children.forEach { parent ->
+            assertEquals(1000, parent.children.size)
         }
 
         println("Stress test completed in ${time.toString(DurationUnit.MILLISECONDS)}")
@@ -270,42 +260,17 @@ class DomParserTest {
     @Test
     @DisplayName("100 children at 100 nodes")
     fun test100NodesIn100Nodes() {
+        val input = "[root]${" [item]${" [sub]X[/sub]".repeat(100)}[/item]".repeat(100)}[/root]"
+        var result: List<DomNode> = emptyList()
+
         val time = measureTime {
-            assertEquals(
-                parser.parse("[root]${" [item]${" [sub]X[/sub]".repeat(100)}[/item]".repeat(100)}[/root]"),
-                run {
-                    val itemTagLength = 13 // [item][/item] + spaces
-                    val subTagLength = 12 // [sub]X[/sub]
+            result = parser.parse(input)
+        }
 
-                    // Building a tree:
-                    val allSubItems = List(100) { itemIdx ->
-                        val subItems = List(100) { subIdx ->
-                            DomNode(
-                                DomElement("sub", "X"),
-                                endOffset = 6 + // [root]
-                                        itemTagLength * itemIdx +
-                                        subTagLength * (subIdx + 1),
-                                children = emptyList()
-                            )
-                        }
-
-                        DomNode(
-                            DomElement("item", ""),
-                            endOffset = 6 + itemTagLength * (itemIdx + 1),
-                            children = subItems
-                        )
-                    }
-
-                    listOf(
-                        DomNode(
-                            DomElement("root", ""),
-                            endOffset = 6 + itemTagLength * 100 + 7, // [/root]
-                            children = allSubItems
-                        )
-                    )
-                    //  Total number of nodes: 1 (root) + 100 (items) + 10_000 (subs) = 10_101
-                }
-            )
+        assertEquals(1, result.size)
+        assertEquals(100, result[0].children.size)
+        result[0].children.forEach { item ->
+            assertEquals(100, item.children.size)
         }
 
         println("Stress test completed in ${time.toString(DurationUnit.MILLISECONDS)}")

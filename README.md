@@ -27,13 +27,14 @@ attributes, and text. It includes a parser that converts MML strings into a tree
   ```
   [p]This is valid text.[/p]   ✅  
   [div]Text [p]Child[/p][/div] ❌ Invalid (text mixed with child tags)
+  [div][text]Text[/text] [p]Child[/p][/div] ✅
   ```
 - **Attributes**:
   - Multiple attributes per tag
   - Values must be quoted (`"` or `'`). 
   - Duplicate attributes:
     ```
-    [link href="#1" href="#2"][/link] -> Last value wins ("#2)
+    [link href="#1" href="#2"][/link] -> Last value wins ("#2")
     ```
 - **Whitespace**:
   - Ignored between tags/attributes (e.g., `[p] Text [/p]` → Text is trimmed).
