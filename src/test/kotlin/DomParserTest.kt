@@ -13,7 +13,7 @@ class DomParserTest {
     private val parser = DomParser()
 
     @Test
-    @DisplayName("Простые валидные теги")
+    @DisplayName("Simple valid tags")
     fun testBasicValidTags() {
         assertEquals(
             parser.parse("[p][/p]"),
@@ -64,7 +64,7 @@ class DomParserTest {
     }
 
     @Test
-    @DisplayName("Вложенные теги")
+    @DisplayName("Nested Tags")
     fun testNestedTags() {
         assertEquals(
             parser.parse("[div][p]Test[/p][/div]"),
@@ -85,7 +85,7 @@ class DomParserTest {
     }
 
     @Test
-    @DisplayName("Теги с атрибутами")
+    @DisplayName("Tags with attributes")
     fun testTagsWithAttributes() {
         assertEquals(
             parser.parse("""[link url="https://example.com" target="_blank"]Click[/link]"""),
@@ -127,61 +127,60 @@ class DomParserTest {
     @Test
     @DisplayName("Невалидные теги")
     fun testInvalidTags() {
-        // Незакрытый тег
+        // An unclosed tag
         assertThrows<MarkdownSyntaxException> {
             parser.parse("[p]Test")
         }
 
+        // Incorrect nesting
         assertThrows<MarkdownSyntaxException> {
             parser.parse("[p][link]Test[/link]Error[/p]")
         }
 
-
-        // Неправильная вложенность
         assertThrows<MarkdownSyntaxException> {
             parser.parse("[div][p]Text[/div][/p]")
         }
 
-        // Дублирование атрибутов
+        // Duplicate attributes
         assertThrows<MarkdownSyntaxException> {
             parser.parse("""[tag a="1" a="2"]""")
         }
 
-        // Незакрытый тег
+        // An unclosed tag
         assertThrows<MarkdownSyntaxException> {
             parser.parse("[p]Test")
         }
 
-        // Неэкранированные кавычки
+        // Unscreened quotes
         assertThrows<MarkdownSyntaxException> {
             parser.parse("""[tag attr="value][/tag]""")
         }
 
-        // Неправильные символы в имени тега
+        // Incorrect characters in tag name
         assertThrows<MarkdownSyntaxException> {
             parser.parse("[tag!][/tag!]")
         }
 
-        // Пробелы в имени тега
+        // Spaces in tag name
         assertThrows<MarkdownSyntaxException> {
             parser.parse("[my tag][/my tag]")
         }
     }
 
     @Test
-    @DisplayName("Граничные случаи")
+    @DisplayName("Boundary cases")
     fun testEdgeCases() {
-        // Минимальный тег
+        // Minimum tag
         assertThrows<MarkdownSyntaxException> {
             parser.parse("[]")
         }
 
-        // Очень длинные атрибуты
+        // Very long attributes
         assertThrows<MarkdownSyntaxException> {
             parser.parse("""[tag ${"a".repeat(1000)}="value"]""")
         }
 
-        // Спецсимволы в контенте
+        // Special characters in content
         assertEquals(
             parser.parse("[p]Line 1\nLine 2\tTab[/p]"),
             listOf(
@@ -195,7 +194,7 @@ class DomParserTest {
     }
 
     @Test
-    @DisplayName("Большое количество детей")
+    @DisplayName("Large number of children")
     fun testToMuchChildren() {
         val time = measureTime {
             assertEquals(
@@ -224,14 +223,14 @@ class DomParserTest {
 
 
     @Test
-    @DisplayName("Миллион dom-узлов")
+    @DisplayName("A million dom-nodes")
     fun testMillionNodes() {
         val time = measureTime {
             assertEquals(
                 parser.parse("[root]${" [parent]${" [child]X[/child]".repeat(1000)}[/parent]".repeat(1000)}[/root]"),
                 run {
                     val rootOpenTagLength = 6 // [root]
-                    val parentTagLength = 17 // [parent][/parent] + пробелы
+                    val parentTagLength = 17 // [parent][/parent] + spaces
                     val childTagLength = 16 // [child]X[/child]
 
                     // Строим дерево снизу вверх:
@@ -260,7 +259,7 @@ class DomParserTest {
                             children = children
                         )
                     )
-                    // Общее число узлов: 1 (root) + 1000 (parents) + 1_000_000 (children) = 1_001_001
+                    // Total number of nodes: 1 (root) + 1000 (parents) + 1_000_000 (children) = 1_001_001
                 }
             )
         }
@@ -269,16 +268,16 @@ class DomParserTest {
     }
 
     @Test
-    @DisplayName("100 детей у 100 узлов")
+    @DisplayName("100 children at 100 nodes")
     fun test100NodesIn100Nodes() {
         val time = measureTime {
             assertEquals(
                 parser.parse("[root]${" [item]${" [sub]X[/sub]".repeat(100)}[/item]".repeat(100)}[/root]"),
                 run {
-                    val itemTagLength = 13 // [item][/item] + пробелы
+                    val itemTagLength = 13 // [item][/item] + spaces
                     val subTagLength = 12 // [sub]X[/sub]
 
-                    // Строим дерево:
+                    // Building a tree:
                     val allSubItems = List(100) { itemIdx ->
                         val subItems = List(100) { subIdx ->
                             DomNode(
@@ -304,7 +303,7 @@ class DomParserTest {
                             children = allSubItems
                         )
                     )
-                    // Общее число узлов: 1 (root) + 100 (items) + 10_000 (subs) = 10_101
+                    //  Total number of nodes: 1 (root) + 100 (items) + 10_000 (subs) = 10_101
                 }
             )
         }

@@ -31,7 +31,7 @@ class DomParser {
         val closedTag = StringBuilder()
         val attributesLine = StringBuilder()
 
-        // Ищем начало тега
+        // Looking for the beginning of the tag
         var lp = getNextNonEmptyIndex(markdown, offset)
 
         if (markdown[lp] != '[')
@@ -42,16 +42,16 @@ class DomParser {
         if (markdown[lp] == '/')
             throw MarkdownSyntaxException("An open tag was expected, but a closing tag was encountered.")
 
-        // Собираем название тега
+        // Collecting the tag name
         while (markdown[lp] != ' ' && markdown[lp] != ']') {
             if (isKeySymbolInvalid(markdown[lp]))
                 throw MarkdownSyntaxException("Invalid character: ${markdown[lp]}")
             name.append(markdown[lp++])
         }
 
-        // Если тег не закрыт, тогда собираем и парсим атрибуты
+        // If the tag is not closed, then we collect and parse the attributes.
         if (markdown[lp] != ']') {
-            // Собираем атрибуты
+            // Collecting attributes
             while (markdown[lp] != ']') attributesLine.append(markdown[lp++])
 
             attributes = parseAttributes(attributesLine.toString())
@@ -59,12 +59,12 @@ class DomParser {
 
         lp++
 
-        // Собираем содержимое тега
+        // Collecting the tag content
         while (lp < markdown.length && markdown[lp] != '[') content.append(markdown[lp++])
 
         var closedTagStartIndex = lp
 
-        // Собираем закрывающийся тег
+        // Collecting the closing tag
         while (lp < markdown.length && markdown[lp] != ']') closedTag.append(markdown[lp++])
 
         if (lp >= markdown.length)
@@ -72,7 +72,7 @@ class DomParser {
 
         closedTag.append(markdown[lp])
 
-        // Ищем нужные закрывающий тег и собираем дочерние узлы
+        // We are looking for the necessary closing tag and collecting child nodes.
         while (lp < markdown.length - 1 && closedTag.toString() != "[/$name]") {
             if (closedTag[1] == '/')
                 throw MarkdownSyntaxException("There is no closing tag for the opening `$name` tag.")
@@ -90,7 +90,7 @@ class DomParser {
 
             closedTagStartIndex = lp
 
-            // Собираем закрывающийся тег
+            // Collecting the closing tag
             while (lp < markdown.length && markdown[lp] != ']') closedTag.append(markdown[lp++])
 
             if (lp >= markdown.length)
@@ -120,7 +120,7 @@ class DomParser {
 
             lp = getNextNonEmptyIndex(attributesLine, lp)
 
-            // Ищем знак =
+            // Looking for a sign =
             while (lp < attributesLine.length && attributesLine[lp] != '=' && attributesLine[lp] != ' ') {
                 if (isKeySymbolInvalid(attributesLine[lp]))
                     throw MarkdownSyntaxException("Invalid character: ${attributesLine[lp]}")
@@ -135,7 +135,7 @@ class DomParser {
 
             lp++
 
-            // Ищем открывающие кавычки
+            // Looking for opening quotes
             lp = getNextNonEmptyIndex(attributesLine, lp)
 
             if (lp > attributesLine.length - 1 || (attributesLine[lp] != '\'' && attributesLine[lp] != '"'))
@@ -143,7 +143,7 @@ class DomParser {
 
             val quoteMark = attributesLine[lp++]
 
-            // Ищем закрывающие кавычки
+            // Looking for closing quotes
             while (lp < attributesLine.length && attributesLine[lp] != quoteMark)
                 value.append(attributesLine[lp++])
 
