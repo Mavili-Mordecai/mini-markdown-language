@@ -21,13 +21,13 @@ data class DomNode(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other == null || this::class != other::class) return false
 
         other as DomNode
 
+        if (endOffset != other.endOffset) return false
         if (element != other.element) return false
         if (children != other.children) return false
-        if (endOffset != other.endOffset) return false
 
         return true
     }
