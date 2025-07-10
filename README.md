@@ -25,9 +25,9 @@ attributes, and text. It includes a parser that converts MML strings into a tree
 ### 2. Supported Features
 - **Text Content**: Only allowed in _leaf nodes_ (tags with no children):
   ```
-  [p]This is valid text.[/p]   ✅  
-  [div]Text [p]Child[/p][/div] ❌ Invalid (text mixed with child tags)
-  [div][text]Text[/text] [p]Child[/p][/div] ✅
+  [p]This is valid text.[/p]                  ✅  
+  [div][text]Text[/text][p]Child[/p][/div]    ✅
+  [div]Text [p]Child[/p][/div]                ❌ Invalid (text mixed with child tags)
   ```
 - **Attributes**:
   - Multiple attributes per tag

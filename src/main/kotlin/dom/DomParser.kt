@@ -166,7 +166,7 @@ class DomParser {
         return lp
     }
 
-    private fun sanitize(markdown: String): String = markdown.trim()
+    private fun sanitize(markdown: String): String = markdown.trimIndent().trim()
 
     private fun isKeySymbolInvalid(ch: Char): Boolean {
         return !(ch.isLetterOrDigit() || ch == '-' || ch == '_')

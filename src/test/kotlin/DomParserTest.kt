@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import printers.ConsoleDomPrinterImpl
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
@@ -25,7 +26,7 @@ class DomParserTest {
                 )
             )
         )
-        
+
         assertEquals(
             parser.parse("[text]Hello[/text]"),
             listOf(
@@ -271,5 +272,171 @@ class DomParserTest {
         }
 
         println("Stress test completed in ${time.toString(DurationUnit.MILLISECONDS)}")
+    }
+
+    @Test
+    @DisplayName("Multiline basic tags")
+    fun testMultilineBasicTags() {
+        assertEquals(
+            parser.parse("""
+            [div]
+              [p]First line[/p]
+              [p]Second line[/p]
+            [/div]
+        """),
+            listOf(
+                DomNode(
+                    DomElement("div", ""),
+                    endOffset = 53,
+                    children = listOf(
+                        DomNode(
+                            DomElement("p", "First line"),
+                            endOffset = 25,
+                            children = emptyList()
+                        ),
+                        DomNode(
+                            DomElement("p", "Second line"),
+                            endOffset = 46,
+                            children = emptyList()
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    @DisplayName("Mixed single-line and multiline tags")
+    fun testMixedSingleAndMultilineTags() {
+        assertEquals(
+            parser.parse("""
+            [header]
+              [title]Document[/title]
+            [/header]
+            [main][p]Content[/p][/main]
+        """),
+            listOf(
+                DomNode(
+                    DomElement("header", ""),
+                    endOffset = 44,
+                    children = listOf(
+                        DomNode(
+                            DomElement("title", "Document"),
+                            endOffset = 34,
+                            children = emptyList()
+                        )
+                    )
+                ),
+                DomNode(
+                    DomElement("main", ""),
+                    endOffset = 72,
+                    children = listOf(
+                        DomNode(
+                            DomElement("p", "Content"),
+                            endOffset = 65,
+                            children = emptyList()
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    @DisplayName("Complex nested multiline structure")
+    fun testComplexNestedMultilineStructure() {
+        assertEquals(
+            parser.parse("""
+            [article]
+              [header]
+                [h1]Title[/h1]
+              [/header]
+              [section]
+                [p]Paragraph 1[/p]
+                [p]
+                  [span]Nested[/span]
+                  [text]text[/text]
+                [/p]
+              [/section]
+            [/article]
+        """),
+            listOf(
+                DomNode(
+                    DomElement("article", ""),
+                    endOffset = 177,
+                    children = listOf(
+                        DomNode(
+                            DomElement("header", ""),
+                            endOffset = 51,
+                            children = listOf(
+                                DomNode(
+                                    DomElement("h1", "Title"),
+                                    endOffset = 39,
+                                    children = emptyList()
+                                )
+                            )
+                        ),
+                        DomNode(
+                            DomElement("section", ""),
+                            endOffset = 166,
+                            children = listOf(
+                                DomNode(
+                                    DomElement("p", "Paragraph 1"),
+                                    endOffset = 86,
+                                    children = emptyList()
+                                ),
+                                DomNode(
+                                    DomElement("p", ""),
+                                    endOffset = 153,
+                                    children = listOf(
+                                        DomNode(
+                                            DomElement("span", "Nested"),
+                                            endOffset = 120,
+                                            children = emptyList()
+                                        ),
+                                        DomNode(
+                                            DomElement("text", "text"),
+                                            endOffset = 144,
+                                            children = emptyList()
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    @DisplayName("Multiline with attributes")
+    fun testMultilineWithAttributes() {
+        assertEquals(
+            parser.parse("""
+            [div class="container"]
+              [p align="center"]Centered text[/p]
+              [img src="image.jpg"][/img]
+            [/div]
+        """),
+            listOf(
+                DomNode(
+                    DomElement("div", "", attributes = hashMapOf("class" to "container")),
+                    endOffset = 98,
+                    children = listOf(
+                        DomNode(
+                            DomElement("p", "Centered text", attributes = hashMapOf("align" to "center")),
+                            endOffset = 61,
+                            children = emptyList()
+                        ),
+                        DomNode(
+                            DomElement("img", "", attributes = hashMapOf("src" to "image.jpg")),
+                            endOffset = 91,
+                            children = emptyList()
+                        )
+                    )
+                )
+            )
+        )
     }
 }

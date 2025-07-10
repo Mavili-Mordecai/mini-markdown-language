@@ -12,10 +12,6 @@ data class DomNode(
     val endOffset: Int,
     val children: List<DomNode> = emptyList()
 ) {
-    override fun toString(): String {
-        return "DomNode(tag=${element.tag}, content=${element.content}, attributes=${element.attributes}, endOffset=$endOffset)"
-    }
-
     override fun hashCode(): Int {
         var result = endOffset
         result = 31 * result + element.hashCode()
