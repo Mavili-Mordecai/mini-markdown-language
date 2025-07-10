@@ -49,9 +49,11 @@ class DomParser {
             name.append(markdown[lp++])
         }
 
-        // Если тег не закрыт, тогда парсим атрибуты
+        // Если тег не закрыт, тогда собираем и парсим атрибуты
         if (markdown[lp] != ']') {
+            // Собираем атрибуты
             while (markdown[lp] != ']') attributesLine.append(markdown[lp++])
+
             attributes = parseAttributes(attributesLine.toString())
         }
 
@@ -60,9 +62,9 @@ class DomParser {
         // Собираем содержимое тега
         while (lp < markdown.length && markdown[lp] != '[') content.append(markdown[lp++])
 
-        // Собираем закрывающийся тег
         var closedTagStartIndex = lp
 
+        // Собираем закрывающийся тег
         while (lp < markdown.length && markdown[lp] != ']') closedTag.append(markdown[lp++])
 
         if (lp >= markdown.length)
@@ -84,11 +86,11 @@ class DomParser {
             lp = node.endOffset
             lp = getNextNonEmptyIndex(markdown, lp)
 
-            // Собираем закрывающий тег
             closedTag.clear()
 
             closedTagStartIndex = lp
 
+            // Собираем закрывающийся тег
             while (lp < markdown.length && markdown[lp] != ']') closedTag.append(markdown[lp++])
 
             if (lp >= markdown.length)
@@ -116,9 +118,9 @@ class DomParser {
             if (attributesLine[lp] != ' ')
                 throw MarkdownSyntaxException("An indentation between attributes was expected.")
 
-            // Ищем знак =
             lp = getNextNonEmptyIndex(attributesLine, lp)
 
+            // Ищем знак =
             while (lp < attributesLine.length && attributesLine[lp] != '=' && attributesLine[lp] != ' ') {
                 if (isKeySymbolInvalid(attributesLine[lp]))
                     throw MarkdownSyntaxException("Invalid character: ${attributesLine[lp]}")
